@@ -18,10 +18,12 @@ jobs:
           cat > meta.json <<'JSON'
           {"main_module":"worker.js","compatibility_date":"2026-10-28","bindings":[{"type":"kv_namespace","name":"LB","namespace_id":"741a536a0a714360892b4959ff3fcfa6"}],"observability":{"enabled":true},"keep_bindings":["secret_text"]}
           JSON
-          curl -sf -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACC/workers/scripts/clash-photo" \
+          test -n "$CF_API_TOKEN" || { echo "CF_API_TOKEN secret is empty"; exit 1; }
+          curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" -H "Authorization: Bearer $CF_API_TOKEN"; echo
+          curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACC/workers/scripts/clash-photo" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -F "metadata=@meta.json;type=application/json" \
-            -F "worker.js=@worker/worker.js;type=application/javascript+module" | tee out.json
+            -F "worker.js=@worker/worker.js;type=application/javascript+module" | tee out.json; echo
           grep -q '"success":true' out.json
       - name: Smoke test
         run: curl -sf https://clash-photo.myfemfamily.workers.dev/top
