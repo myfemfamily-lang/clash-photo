@@ -1,0 +1,27 @@
+name: Deploy leaderboard worker
+on:
+  push:
+    branches: [main]
+    paths: ['worker/**', '.github/workflows/worker.yml']
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload worker code with KV binding
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          set -e
+          ACC=bd9edaed2b264a0f56c1b4ccd8bbe04e
+          cat > meta.json <<'JSON'
+          {"main_module":"worker.js","compatibility_date":"2026-10-28","bindings":[{"type":"kv_namespace","name":"LB","namespace_id":"741a536a0a714360892b4959ff3fcfa6"}],"observability":{"enabled":true},"keep_bindings":["secret_text"]}
+          JSON
+          curl -sf -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACC/workers/scripts/clash-photo" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -F "metadata=@meta.json;type=application/json" \
+            -F "worker.js=@worker/worker.js;type=application/javascript+module" | tee out.json
+          grep -q '"success":true' out.json
+      - name: Smoke test
+        run: curl -sf https://clash-photo.myfemfamily.workers.dev/top
