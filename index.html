@@ -185,7 +185,7 @@ function setButtons(){
 function banner(title,text){ui.btitle.textContent=title;ui.btext.innerHTML=text;ui.banner.hidden=false;}
 
 // ---------- leaderboard ----------
-const API='';   // адрес сервера рейтинга; пусто = локальный рейтинг на этом устройстве
+const API='https://clash-photo.myfemfamily.workers.dev';   // сервер рейтинга
 let ME='Игрок';
 function initName(){
   const tg=window.Telegram&&window.Telegram.WebApp,u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user;
